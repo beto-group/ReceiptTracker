@@ -125,7 +125,7 @@ const ApiKeyManagerPopover = ({
     useEffect(() => {
         if (isOpen && anchorRef.current) {
             const rect = anchorRef.current.getBoundingClientRect();
-            const containerRect = anchorRef.current.closest('.view-container')?.getBoundingClientRect() || { top: 0, left: 0 };
+            const containerRect = anchorRef.current.closest('.rt-container')?.getBoundingClientRect() || { top: 0, left: 0 };
             setPosition({
                 top: rect.bottom - containerRect.top + 4,
                 right: containerRect.right - rect.right,
@@ -1161,7 +1161,7 @@ Receipt text to parse (may be in any language): ---`
   const currentReceiptData = currentReceipt ? processedData[currentReceipt.path] : null;
 
   return (
-    <div ref={containerRef} className="view-container">
+    <div ref={containerRef} className="rt-container">
       <style>{viewerStyles.globalCss}</style>
       <ScreenModeHelper helperRef={screenModeHelperRef} containerRef={containerRef} />
       <ApiKeyManagerPopover 
@@ -1182,7 +1182,7 @@ Receipt text to parse (may be in any language): ---`
       {modalImageUrl && ( <div className="image-modal-overlay" onClick={handleCloseImageModal}> <span className="image-modal-close" onClick={handleCloseImageModal}>×</span> <img src={modalImageUrl} alt="Enlarged receipt" className="image-modal-content" onClick={(e) => e.stopPropagation()} /> </div> )}
       {isEditModalOpen && editModalData && ( <EditReceiptModal isOpen={isEditModalOpen} onClose={handleCloseEditModal} initialData={editModalData} onSave={handleSaveEditedData} /> )}
       
-      <header className="view-header">
+      <header className="rt-header">
         <div className="header-left">
             <h2 style={viewerStyles.headerTitle}>🧾 Receipt Handler</h2>
             <div className="main-view-tabs">
@@ -1200,7 +1200,7 @@ Receipt text to parse (may be in any language): ---`
 
       {mainView === 'processor' && (
         <>
-            <div className="view-controls">
+            <div className="rt-controls">
                 <label htmlFor="folder-path-input">Receipts Folder:</label>
                 <input id="folder-path-input" type="text" value={receiptFolderPath} onChange={e => setReceiptFolderPath(e.target.value)} placeholder="Relative to component location" />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

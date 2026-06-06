@@ -1,6 +1,6 @@
 function getStyles() {
   const globalCss = `
-    .view-container { 
+    .rt-container { 
       display: flex; flex-direction: column; gap: 16px; padding: 16px; 
       background-color: #0a0a0a; height: 100%; box-sizing: border-box;
       position: relative; color: #ffffff;
@@ -51,7 +51,7 @@ function getStyles() {
     button.primary { background-color: rgba(155, 135, 245, 0.8); border-color: rgba(155, 135, 245, 0.8); }
     button.primary:hover { background-color: rgba(155, 135, 245, 1); }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
-    .view-header { display: flex; align-items: center; gap: 16px; flex-shrink: 0; justify-content: space-between; width: 100%; padding-bottom: 16px; border-bottom: 1px solid #2a2a2a; }
+    .rt-header { display: flex; align-items: center; gap: 16px; flex-shrink: 0; justify-content: space-between; width: 100%; padding-bottom: 16px; border-bottom: 1px solid #2a2a2a; }
     .header-left { display: flex; align-items: center; gap: 24px; flex-grow: 1; overflow: hidden; }
     .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .main-view-tabs { display: flex; align-items: center; background-color: #1a1a1a; border-radius: 6px; padding: 4px; }
@@ -84,9 +84,9 @@ function getStyles() {
     .api-key-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid #2a2a2a; padding-top: 12px; margin-top: 4px; }
     
     /* --- PROCESSOR VIEW STYLES & FOCUS MODE --- */
-    .view-controls { display: flex; gap: 16px; align-items: center; flex-shrink: 0; }
-    .view-controls label { color: #888888; }
-    .view-controls input { flex-grow: 1; }
+    .rt-controls { display: flex; gap: 16px; align-items: center; flex-shrink: 0; }
+    .rt-controls label { color: #888888; }
+    .rt-controls input { flex-grow: 1; }
     
     .processor-content-wrapper {
       flex-grow: 1;
