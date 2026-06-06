@@ -393,12 +393,12 @@ function ReceiptHandlerView({ folderPath }) {
   
   // Calculate default relative paths based on component location
   const defaultReceiptsFolderPath = useMemo(() => {
-    return getRelativePath(currentPath, '_resources/receipts');
+    return getRelativePath(currentPath, 'data/receipts');
   }, [currentPath]);
   
   const processedFolderPath = useMemo(() => {
     // Always calculate processed path based on the current receiptFolderPath
-    if (!receiptFolderPath) return getRelativePath(currentPath, '_resources/receipts/_processed');
+    if (!receiptFolderPath) return getRelativePath(currentPath, 'data/receipts/_processed');
     return receiptFolderPath + '/_processed';
   }, [currentPath, receiptFolderPath]);
   
@@ -686,6 +686,17 @@ function ReceiptHandlerView({ folderPath }) {
       try {
         console.log('[Dashboard] Checking folder path:', receiptFolderPath);
         console.log('[Dashboard] Using vault:', dc.app.vault.getName());
+        
+        // Auto-create folder if it doesn't exist
+        if (!await dc.app.vault.adapter.exists(receiptFolderPath)) {
+            console.log('[Dashboard] Folder does not exist, creating:', receiptFolderPath);
+            await dc.app.vault.adapter.mkdir(receiptFolderPath);
+        }
+        if (!await dc.app.vault.adapter.exists(processedFolderPath)) {
+            console.log('[Dashboard] Processed folder does not exist, creating:', processedFolderPath);
+            await dc.app.vault.adapter.mkdir(processedFolderPath);
+        }
+        
         const folder = dc.app.vault.getAbstractFileByPath(receiptFolderPath);
         console.log('[Dashboard] Got folder object:', folder);
         if (folder?.children) {
