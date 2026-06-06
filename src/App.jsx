@@ -247,6 +247,7 @@ const EditIcon = () => <dc.Icon icon="edit-3" style={{ fontSize: '16px' }} />;
 const FullscreenIcon = () => <dc.Icon icon="maximize-2" style={{ fontSize: '16px' }} />;
 const ExpandIcon = () => <dc.Icon icon="maximize" style={{ fontSize: '16px' }} />;
 const MinimizeIcon = () => <dc.Icon icon="minimize" style={{ fontSize: '16px' }} />;
+const TrashIcon = () => <dc.Icon icon="trash-2" style={{ fontSize: '16px', color: '#ef4444' }} />;
 
 const maskApiKey = (key) => { if (typeof key !== 'string' || key.length < 12) return "Invalid Key"; return `${key.substring(0, 7)}...${key.substring(key.length - 4)}`; };
 const getProcessedMdFileName = (fileName) => { const baseName = fileName.substring(0, fileName.lastIndexOf('.')).replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-'); return `${baseName}.md`; };
@@ -902,7 +903,7 @@ function ReceiptHandlerView({ folderPath }) {
       console.log(`[OCR] 2. Read ${buffer.byteLength} bytes`);
       
       const blob = new Blob([buffer], { type: `image/${file.extension}` });
-      const imageSrc = URL.createObjectURL(blob);
+      let imageSrc = URL.createObjectURL(blob);
       console.log(`[OCR] 3. Created blob URL: ${imageSrc}`);
       
       // Preprocess image for faster OCR (resize if too large)
@@ -1291,6 +1292,28 @@ Receipt text to parse (may be in any language): ---`
   const handleCloseEditModal = () => { setIsEditModalOpen(false); setEditModalData(null); };
   const handleSaveEditedData = async (editedJson, originalOcr) => { if (!editModalData?.file) return; try { await saveExtractedDataToMarkdown(editModalData.file, editedJson, originalOcr, processedFolderPath); setProcessedData(prev => ({ ...prev, [editModalData.file.path]: { json: editedJson, ocr: originalOcr } })); loadAllDashboardData(); setError(null); } catch (err) { setError(`Failed to save edited data for ${editModalData.file.name}: ${err.message}`); } finally { handleCloseEditModal(); } };
   const handleCloseImageModal = () => { if (modalImageUrl) URL.revokeObjectURL(modalImageUrl); setModalImageUrl(null); };
+  const handleDeleteProcessedData = async (file) => {
+    if (!window.confirm(`Are you sure you want to delete the processed data for ${file.name}? This will delete the saved markdown file, but keep the original image.`)) {
+      return;
+    }
+    const mdFileName = getProcessedMdFileName(file.name);
+    const mdFilePath = `${processedFolderPath}/${mdFileName}`;
+    try {
+      if (await dc.app.vault.adapter.exists(mdFilePath)) {
+        await dc.app.vault.adapter.remove(mdFilePath);
+        console.log(`[Delete] Deleted ${mdFilePath}`);
+      }
+      setProcessedData(prev => {
+        const next = { ...prev };
+        delete next[file.path];
+        return next;
+      });
+      loadAllDashboardData();
+    } catch (err) {
+      console.error('[Delete] Failed to delete processed data:', err);
+      setError(`Failed to delete processed data: ${err.message}`);
+    }
+  };
   const currentReceiptData = currentReceipt ? processedData[currentReceipt.path] : null;
 
   return (
@@ -1370,16 +1393,55 @@ Receipt text to parse (may be in any language): ---`
                     marginBottom: '16px',
                     fontSize: '12px',
                     color: 'var(--text-muted)',
-                    lineHeight: '1.6'
+                    lineHeight: '1.6',
+                    position: 'relative',
+                    zIndex: 999
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                         <strong style={{ color: 'var(--interactive-accent)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <dc.Icon icon="settings" /> Component Configuration
                         </strong>
                         {isEditingSettings ? (
-                            <button className="mod-cta" onClick={(e) => { e.preventDefault(); console.log('Save clicked'); handleSaveSettings(); }} style={{ padding: '2px 8px', height: '24px', fontSize: '11px', cursor: 'pointer' }}>Save</button>
+                            <span 
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('Save clicked'); handleSaveSettings(); }} 
+                                style={{ 
+                                    padding: '4px 12px', 
+                                    fontSize: '11px', 
+                                    cursor: 'pointer', 
+                                    backgroundColor: 'var(--interactive-accent)', 
+                                    color: 'var(--text-on-accent)',
+                                    borderRadius: '4px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    fontWeight: 'bold',
+                                    userSelect: 'none'
+                                }}
+                            >
+                                Save
+                            </span>
                         ) : (
-                            <button className="mod-cta" onClick={(e) => { e.preventDefault(); console.log('Edit clicked'); setIsEditingSettings(true); }} style={{ padding: '2px 8px', height: '24px', fontSize: '11px', backgroundColor: 'var(--interactive-normal)', cursor: 'pointer' }}><dc.Icon icon="edit-3" /> Edit Paths</button>
+                            <span 
+                                role="button"
+                                tabIndex={0}
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); console.log('Edit clicked'); setIsEditingSettings(true); }} 
+                                style={{ 
+                                    padding: '4px 12px', 
+                                    fontSize: '11px', 
+                                    cursor: 'pointer', 
+                                    backgroundColor: 'var(--background-modifier-border)', 
+                                    color: 'var(--text-normal)',
+                                    borderRadius: '4px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    fontWeight: 'bold',
+                                    userSelect: 'none'
+                                }}
+                            >
+                                <dc.Icon icon="edit-3" /> Edit Paths
+                            </span>
                         )}
                     </div>
                     
@@ -1441,7 +1503,7 @@ Receipt text to parse (may be in any language): ---`
                         <h4>Processed Summary (Current Folder)</h4>
                         <button className="icon-button panel-focus-button" title={focusedPanel === 'summary' ? 'Restore Layout' : 'Expand Panel'}>{focusedPanel === 'summary' ? <MinimizeIcon/> : <ExpandIcon/>}</button>
                     </div>
-                    <div className="table-container"><table className="summary-table"><thead><tr><th>File</th><th>Merchant</th><th>Date</th><th style={viewerStyles.tableCellRight}>Total</th><th>Actions</th></tr></thead><tbody>{Object.keys(processedData).length > 0 ? Object.entries(processedData).map(([path, data]) => { const file = receiptFiles.find(f => f.path === path); if (!file) return null; return (<tr key={path}><td title={path}>{file.name}</td><td>{data.json?.merchant_name || 'N/A'}</td><td>{data.json?.transaction_date || 'N/A'}</td><td style={viewerStyles.tableCellRightBold}>{data.json?.total_amount != null ? `${data.json.total_amount.toFixed(2)} ${data.json.currency || ''}` : 'N/A'}</td><td className="table-actions"><button className="rt-icon-button" title="View Image" onClick={async () => { try { const buffer = await app.vault.readBinary(file); setModalImageUrl(URL.createObjectURL(new Blob([buffer]))); } catch(err) {} }}><EyeIcon /></button>{(data.json || data.error) && <button className="rt-icon-button" onClick={() => handleOpenEditModal(file, data)} title="Edit Data"><EditIcon /></button>}{(data.json || data.error) && <button className="rt-icon-button" onClick={() => handleProcessReceipt(file)} disabled={isLoading} title="Reprocess Data"><ProcessIcon /></button>}</td></tr>);}) : <tr><td colSpan="5" style={viewerStyles.tableCellCenter}>No receipts processed in this folder.</td></tr>}</tbody></table></div>
+                    <div className="table-container"><table className="summary-table"><thead><tr><th>File</th><th>Merchant</th><th>Date</th><th style={viewerStyles.tableCellRight}>Total</th><th>Actions</th></tr></thead><tbody>{Object.keys(processedData).length > 0 ? Object.entries(processedData).map(([path, data]) => { const file = receiptFiles.find(f => f.path === path); if (!file) return null; return (<tr key={path}><td title={path}>{file.name}</td><td>{data.json?.merchant_name || 'N/A'}</td><td>{data.json?.transaction_date || 'N/A'}</td><td style={viewerStyles.tableCellRightBold}>{data.json?.total_amount != null ? `${data.json.total_amount.toFixed(2)} ${data.json.currency || ''}` : 'N/A'}</td><td className="table-actions"><button className="rt-icon-button" title="View Image" onClick={async () => { try { const buffer = await app.vault.readBinary(file); setModalImageUrl(URL.createObjectURL(new Blob([buffer]))); } catch(err) {} }}><EyeIcon /></button>{(data.json || data.error) && <button className="rt-icon-button" onClick={() => handleOpenEditModal(file, data)} title="Edit Data"><EditIcon /></button>}{(data.json || data.error) && <button className="rt-icon-button" onClick={() => handleProcessReceipt(file)} disabled={isLoading} title="Reprocess Data"><ProcessIcon /></button>}{(data.json || data.error) && <button className="rt-icon-button" onClick={() => handleDeleteProcessedData(file)} title="Delete Processed Data"><TrashIcon /></button>}</td></tr>);}) : <tr><td colSpan="5" style={viewerStyles.tableCellCenter}>No receipts processed in this folder.</td></tr>}</tbody></table></div>
                 </div>
             </div>
         </>

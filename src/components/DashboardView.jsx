@@ -115,7 +115,7 @@ const RecentTransactions = ({ receipts }) => (
 
 
 const DashboardView = ({ dashboardData }) => {
-    const [dateFilter, setDateFilter] = useState('this_year');
+    const [dateFilter, setDateFilter] = useState('all_time');
     const [selectedCurrency, setSelectedCurrency] = useState('ALL');
     const [baseCurrency, setBaseCurrency] = useState('USD');
     const [exchangeRates, setExchangeRates] = useState(null);

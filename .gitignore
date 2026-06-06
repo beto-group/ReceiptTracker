@@ -5,3 +5,8 @@ data/receipts/_processed/*
 # Keep examples
 !data/receipts/*example*
 !data/receipts/_processed/*example*
+
+# Settings and temp files
+data/settings.json
+tmp.jsx
+.DS_Store
