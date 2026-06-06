@@ -366,6 +366,7 @@ function ReceiptHandlerView({ folderPath }) {
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [receiptFolderPath, setReceiptFolderPath] = useState("");
   const [processedFolderPath, setProcessedFolderPath] = useState("");
+  const [showExamples, setShowExamples] = useState(true);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
   const [receiptFiles, setReceiptFiles] = useState([]);
   const [currentReceipt, setCurrentReceipt] = useState(null);
@@ -412,6 +413,8 @@ function ReceiptHandlerView({ folderPath }) {
           
           if (settings.processedFolderPath) setProcessedFolderPath(settings.processedFolderPath);
           else if (defaultReceiptsFolderPath) setProcessedFolderPath(defaultReceiptsFolderPath + '/_processed');
+          
+          if (settings.showExamples !== undefined) setShowExamples(settings.showExamples);
           return;
         }
       } catch (e) {
@@ -516,7 +519,21 @@ function ReceiptHandlerView({ folderPath }) {
       console.log('[Dashboard] Folder object:', folder);
       
       if (folder?.children) {
-        const mdFiles = folder.children.filter(f => f.extension && f.extension.toLowerCase() === 'md');
+        let mdFiles = folder.children.filter(f => f.extension && f.extension.toLowerCase() === 'md');
+        
+        if (!showExamples) {
+            mdFiles = mdFiles.filter(f => !f.name.toLowerCase().includes('example'));
+        } else if (showExamples && processedFolderPath !== defaultReceiptsFolderPath + '/_processed') {
+            const defaultProcessedFolder = dc.app.vault.getAbstractFileByPath(defaultReceiptsFolderPath + '/_processed');
+            if (defaultProcessedFolder?.children) {
+                const exampleMdFiles = defaultProcessedFolder.children.filter(f => f.extension && f.extension.toLowerCase() === 'md' && f.name.toLowerCase().includes('example'));
+                const existingPaths = new Set(mdFiles.map(f => f.path));
+                for (const ex of exampleMdFiles) {
+                    if (!existingPaths.has(ex.path)) mdFiles.push(ex);
+                }
+            }
+        }
+        
         console.log('[Dashboard] Found', mdFiles.length, 'markdown files');
         
         for (const file of mdFiles) {
@@ -539,7 +556,7 @@ function ReceiptHandlerView({ folderPath }) {
     
     console.log('[Dashboard] Loaded', dashboardData.length, 'receipts');
     setAllProcessedData(dashboardData);
-  }, [processedFolderPath]);
+  }, [processedFolderPath, showExamples, defaultReceiptsFolderPath]);
   
   // Load Tesseract.js on mount
   useEffect(() => {
@@ -717,17 +734,50 @@ function ReceiptHandlerView({ folderPath }) {
         
         const folder = dc.app.vault.getAbstractFileByPath(receiptFolderPath);
         console.log('[Dashboard] Got folder object:', folder);
+        
+        let allImageFiles = [];
+        let newProcessedData = {};
+        
+        // 1. Load from custom folder
         if (folder?.children) {
-          const imageFiles = folder.children
-            .filter(f => f.extension && ['png', 'jpg', 'jpeg', 'webp'].includes(f.extension.toLowerCase()))
-            .sort((a, b) => a.name.localeCompare(b.name));
-          setReceiptFiles(imageFiles);
+            allImageFiles = folder.children.filter(f => f.extension && ['png', 'jpg', 'jpeg', 'webp'].includes(f.extension.toLowerCase()));
+            for (const file of allImageFiles) {
+                const loadedData = await loadProcessedDataFromMarkdown(file, processedFolderPath);
+                if (loadedData) newProcessedData[file.path] = loadedData;
+            }
+        }
+        
+        // 2. Load examples if enabled and path is custom
+        if (showExamples && receiptFolderPath !== defaultReceiptsFolderPath) {
+            const defaultFolder = dc.app.vault.getAbstractFileByPath(defaultReceiptsFolderPath);
+            if (defaultFolder?.children) {
+                const exampleFiles = defaultFolder.children.filter(f => f.extension && ['png', 'jpg', 'jpeg', 'webp'].includes(f.extension.toLowerCase()) && f.name.toLowerCase().includes('example'));
+                const existingPaths = new Set(allImageFiles.map(f => f.path));
+                for (const ex of exampleFiles) {
+                    if (!existingPaths.has(ex.path)) {
+                        allImageFiles.push(ex);
+                        // Try loading example processed data from default processed folder
+                        const loadedData = await loadProcessedDataFromMarkdown(ex, defaultReceiptsFolderPath + '/_processed');
+                        if (loadedData) newProcessedData[ex.path] = loadedData;
+                    }
+                }
+            }
+        }
+        
+        // 3. Filter out examples if disabled
+        if (!showExamples) {
+            allImageFiles = allImageFiles.filter(f => !f.name.toLowerCase().includes('example'));
+            const filteredProcessed = {};
+            for (const p in newProcessedData) {
+                if (!p.toLowerCase().includes('example')) filteredProcessed[p] = newProcessedData[p];
+            }
+            newProcessedData = filteredProcessed;
+        }
 
-          const newProcessedData = {};
-          for (const file of imageFiles) {
-            const loadedData = await loadProcessedDataFromMarkdown(file, processedFolderPath);
-            if (loadedData) newProcessedData[file.path] = loadedData;
-          }
+        allImageFiles.sort((a, b) => a.name.localeCompare(b.name));
+        
+        if (allImageFiles.length > 0 || (folder && folder.children)) {
+          setReceiptFiles(allImageFiles);
           setProcessedData(newProcessedData);
         } else {
           // Path is valid but not a folder or is empty
@@ -792,7 +842,8 @@ function ReceiptHandlerView({ folderPath }) {
     try {
       await dc.app.vault.adapter.write(settingsPath, JSON.stringify({
         receiptFolderPath,
-        processedFolderPath
+        processedFolderPath,
+        showExamples
       }, null, 2));
       setIsEditingSettings(false);
       console.log("Settings saved!");
@@ -1349,6 +1400,13 @@ Receipt text to parse (may be in any language): ---`
                             <input type="text" value={processedFolderPath} onChange={e => setProcessedFolderPath(e.target.value)} style={{ width: '100%' }} />
                         ) : (
                             <div>{processedFolderPath}</div>
+                        )}
+                        
+                        <div style={{ color: 'var(--interactive-accent)', fontWeight: 'bold' }}>Show Examples:</div>
+                        {isEditingSettings ? (
+                            <input type="checkbox" checked={showExamples} onChange={e => setShowExamples(e.target.checked)} />
+                        ) : (
+                            <div>{showExamples ? "Enabled" : "Disabled"}</div>
                         )}
                     </div>
                 </div>

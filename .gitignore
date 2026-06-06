@@ -3,5 +3,5 @@ data/receipts/*
 data/receipts/_processed/*
 
 # Keep examples
-!data/receipts/example*
-!data/receipts/_processed/example*
+!data/receipts/*example*
+!data/receipts/_processed/*example*
