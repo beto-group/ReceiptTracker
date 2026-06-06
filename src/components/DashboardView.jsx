@@ -61,13 +61,13 @@ const MonthlySpendingChart = ({ data, currency }) => {
         const currencyFormatter = (value) => { try { return new Intl.NumberFormat(undefined, { style: 'currency', currency, notation: 'compact' }).format(value); } catch { return d3.format("$,.0f")(value); }};
         svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`).call(d3.axisBottom(x).tickSizeOuter(0));
         svg.append("g").attr("transform", `translate(${margin.left},0)`).call(d3.axisLeft(y).ticks(5).tickFormat(currencyFormatter));
-        svg.selectAll(".domain, .tick line").style("stroke", "#2a2a2a");
-        svg.selectAll("text").style("fill", "#888888");
+        svg.selectAll(".domain, .tick line").style("stroke", "var(--background-modifier-border)");
+        svg.selectAll("text").style("fill", "var(--text-muted)");
         const purpleGradient = svg.append("defs").append("linearGradient").attr("id", "purpleGradient").attr("x1", "0%").attr("y1", "0%").attr("x2", "0%").attr("y2", "100%");
         purpleGradient.append("stop").attr("offset", "0%").style("stop-color", "rgba(155, 135, 245, 0.9)").style("stop-opacity", 1);
         purpleGradient.append("stop").attr("offset", "100%").style("stop-color", "rgba(236, 72, 153, 0.9)").style("stop-opacity", 1);
         svg.append("g").attr("fill", "url(#purpleGradient)").selectAll("rect").data(data).join("rect").attr("x", d => x(d.month)).attr("y", d => y(d.total)).attr("height", d => y(0) - y(d.total)).attr("width", x.bandwidth()).attr("rx", 4);
-        svg.append("text").attr("x", width / 2).attr("y", margin.top / 2).attr("text-anchor", "middle").style("font-size", "14px").style("fill", "#ffffff").text("Spending Over Time");
+        svg.append("text").attr("x", width / 2).attr("y", margin.top / 2).attr("text-anchor", "middle").style("font-size", "14px").style("fill", "var(--text-normal)").text("Spending Over Time");
     }, [isD3Loaded, data, currency]);
     return <div ref={chartRef} className="chart-container"></div>;
 };
@@ -88,8 +88,8 @@ const SpendingByMerchantChart = ({ data, currency }) => {
         const pie = d3.pie().sort(null).value(d => d.total);
         const arc = d3.arc().innerRadius(radius * 0.6).outerRadius(radius);
         const arcs = pie(data);
-        svg.append("g").attr("stroke", "#1a1a1a").attr("stroke-width", 2).selectAll("path").data(arcs).join("path").attr("fill", d => color(d.data.merchant)).attr("d", arc).append("title").text(d => `${d.data.merchant}: ${formatCurrency(d.data.total, currency)}`);
-        svg.append("text").attr("text-anchor", "middle").style("font-size", "14px").style("fill", "#ffffff").attr("y", -height/2 + 20).text("Top Spending by Merchant");
+        svg.append("g").attr("stroke", "var(--background-secondary)").attr("stroke-width", 2).selectAll("path").data(arcs).join("path").attr("fill", d => color(d.data.merchant)).attr("d", arc).append("title").text(d => `${d.data.merchant}: ${formatCurrency(d.data.total, currency)}`);
+        svg.append("text").attr("text-anchor", "middle").style("font-size", "14px").style("fill", "var(--text-normal)").attr("y", -height/2 + 20).text("Top Spending by Merchant");
     }, [isD3Loaded, data, currency]);
     return <div ref={chartRef} className="chart-container"></div>;
 };

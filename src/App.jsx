@@ -1204,23 +1204,23 @@ Receipt text to parse (may be in any language): ---`
                 <label htmlFor="folder-path-input">Receipts Folder:</label>
                 <input id="folder-path-input" type="text" value={receiptFolderPath} onChange={e => setReceiptFolderPath(e.target.value)} placeholder="Relative to component location" />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <label htmlFor="ocr-language-select" style={{ color: '#888888', whiteSpace: 'nowrap' }}>OCR Language:</label>
+                    <label htmlFor="ocr-language-select" style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>OCR Language:</label>
                     <select 
                         id="ocr-language-select"
                         value={ocrLanguage} 
                         onChange={e => setOcrLanguage(e.target.value)}
                         style={{
-                            backgroundColor: '#1a1a1a',
-                            border: '1px solid #2a2a2a',
+                            backgroundColor: 'var(--background-secondary)',
+                            border: '1px solid var(--background-modifier-border)',
                             borderRadius: '6px',
                             padding: '8px 12px',
-                            color: '#ffffff',
+                            color: 'var(--text-normal)',
                             fontSize: '14px',
                             minWidth: '150px'
                         }}
                     >
                         {OCR_LANGUAGES.map(lang => (
-                            <option key={lang.code} value={lang.code} style={{backgroundColor: '#1a1a1a', color: '#ffffff'}}>
+                            <option key={lang.code} value={lang.code} style={{backgroundColor: 'var(--background-secondary)', color: 'var(--text-normal)'}}>
                                 {lang.name}
                             </option>
                         ))}
@@ -1234,17 +1234,17 @@ Receipt text to parse (may be in any language): ---`
             {currentPath && (
                 <div style={{ 
                     padding: '8px 16px', 
-                    backgroundColor: '#1a1a1a', 
+                    backgroundColor: 'var(--background-secondary)', 
                     borderRadius: '6px', 
                     marginBottom: '16px',
                     fontSize: '12px',
-                    color: '#888888',
+                    color: 'var(--text-muted)',
                     lineHeight: '1.6'
                 }}>
-                    <div><strong style={{ color: '#9b87f5' }}>Component:</strong> {currentPath}</div>
-                    <div><strong style={{ color: '#9b87f5' }}>Default Receipts:</strong> {defaultReceiptsFolderPath}</div>
-                    <div><strong style={{ color: '#9b87f5' }}>Current Receipts:</strong> {receiptFolderPath}</div>
-                    <div><strong style={{ color: '#9b87f5' }}>Processed Output:</strong> {processedFolderPath}</div>
+                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Component:</strong> {currentPath}</div>
+                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Default Receipts:</strong> {defaultReceiptsFolderPath}</div>
+                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Current Receipts:</strong> {receiptFolderPath}</div>
+                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Processed Output:</strong> {processedFolderPath}</div>
                 </div>
             )}
             
@@ -1266,7 +1266,7 @@ Receipt text to parse (may be in any language): ---`
                                 <button className="icon-button panel-focus-button" onClick={(e) => { e.stopPropagation(); handlePanelFocus('processing'); }} title={focusedPanel === 'processing' ? 'Restore Layout' : 'Expand Panel'}>{focusedPanel === 'processing' ? <MinimizeIcon/> : <ExpandIcon/>}</button>
                             </div>
                         </div>
-                        <div className="panel-content-grid">{!tesseractLoaded && !error && <div className="notice is-info">Loading OCR library from CDN...</div>}{error && <div className="notice is-error">{error}</div>}{isLoading && <div className="notice is-info">{currentStatus} {ocrProgress > 0 && `- ${ocrProgress}%`}{detectedLanguage && <span style={{ marginLeft: '8px', color: '#9b87f5' }}>• Detected: {detectedLanguage}</span>}</div>}{!currentReceipt ? (<EmptyStatePlaceholder iconName="file-text" title="Select a Receipt" message="Choose a receipt from the list on the left to view details."/>) : (<div className="card-grid"><div className="card"><h5>Image Preview</h5>{imagePreviewUrl ? <img src={imagePreviewUrl} alt="Receipt preview" className="preview-image" onLoad={() => console.log('[Preview IMG] ✓ Image rendered successfully in browser')} onError={(e) => { console.error('[Preview IMG] ❌ Browser failed to render image'); console.error('[Preview IMG] Error event:', e); console.error('[Preview IMG] Img src:', e.target?.src); }} onClick={async () => { const buffer = await app.vault.readBinary(currentReceipt); setModalImageUrl(URL.createObjectURL(new Blob([buffer]))); }}/> : 'Loading...'}</div><div className="card"><div className="tab-bar"><button onClick={() => setActiveTab('json')} className={activeTab === 'json' ? 'active' : ''}>Extracted Data</button><button onClick={() => setActiveTab('ocr')} className={activeTab === 'ocr' ? 'active' : ''}>Raw OCR Text</button></div><div className="tab-content">{activeTab === 'json' && <pre className="data-pre">{currentReceiptData?.json ? JSON.stringify(currentReceiptData.json, null, 2) : currentReceiptData?.error ? `Error: ${currentReceiptData.error}` : 'Not processed.'}</pre>}{activeTab === 'ocr' && <pre className="data-pre">{currentReceiptData?.ocr || 'No OCR text.'}</pre>}</div></div></div>)}</div>
+                        <div className="panel-content-grid">{!tesseractLoaded && !error && <div className="notice is-info">Loading OCR library from CDN...</div>}{error && <div className="notice is-error">{error}</div>}{isLoading && <div className="notice is-info">{currentStatus} {ocrProgress > 0 && `- ${ocrProgress}%`}{detectedLanguage && <span style={{ marginLeft: '8px', color: 'var(--interactive-accent)' }}>• Detected: {detectedLanguage}</span>}</div>}{!currentReceipt ? (<EmptyStatePlaceholder iconName="file-text" title="Select a Receipt" message="Choose a receipt from the list on the left to view details."/>) : (<div className="card-grid"><div className="card"><h5>Image Preview</h5>{imagePreviewUrl ? <img src={imagePreviewUrl} alt="Receipt preview" className="preview-image" onLoad={() => console.log('[Preview IMG] ✓ Image rendered successfully in browser')} onError={(e) => { console.error('[Preview IMG] ❌ Browser failed to render image'); console.error('[Preview IMG] Error event:', e); console.error('[Preview IMG] Img src:', e.target?.src); }} onClick={async () => { const buffer = await app.vault.readBinary(currentReceipt); setModalImageUrl(URL.createObjectURL(new Blob([buffer]))); }}/> : 'Loading...'}</div><div className="card"><div className="tab-bar"><button onClick={() => setActiveTab('json')} className={activeTab === 'json' ? 'active' : ''}>Extracted Data</button><button onClick={() => setActiveTab('ocr')} className={activeTab === 'ocr' ? 'active' : ''}>Raw OCR Text</button></div><div className="tab-content">{activeTab === 'json' && <pre className="data-pre">{currentReceiptData?.json ? JSON.stringify(currentReceiptData.json, null, 2) : currentReceiptData?.error ? `Error: ${currentReceiptData.error}` : 'Not processed.'}</pre>}{activeTab === 'ocr' && <pre className="data-pre">{currentReceiptData?.ocr || 'No OCR text.'}</pre>}</div></div></div>)}</div>
                     </div>
                 </div>
 
@@ -1285,15 +1285,15 @@ Receipt text to parse (may be in any language): ---`
           {processedFolderPath && (
             <div style={{ 
               padding: '8px 16px', 
-              backgroundColor: '#1a1a1a', 
+              backgroundColor: 'var(--background-secondary)', 
               borderRadius: '6px', 
               margin: '16px',
               fontSize: '12px',
-              color: '#888888',
+              color: 'var(--text-muted)',
               lineHeight: '1.6'
             }}>
-              <div><strong style={{ color: '#9b87f5' }}>Loading from:</strong> {processedFolderPath}</div>
-              <div><strong style={{ color: '#9b87f5' }}>Receipts found:</strong> {allProcessedData.length}</div>
+              <div><strong style={{ color: 'var(--interactive-accent)' }}>Loading from:</strong> {processedFolderPath}</div>
+              <div><strong style={{ color: 'var(--interactive-accent)' }}>Receipts found:</strong> {allProcessedData.length}</div>
             </div>
           )}
           <DashboardView dashboardData={allProcessedData} />
