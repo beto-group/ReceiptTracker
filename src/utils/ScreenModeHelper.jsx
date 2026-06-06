@@ -49,6 +49,14 @@ const ScreenModeHelper = ({ helperRef, containerRef }) => {
       contentWrapper.style.position = "relative";
     }
     Object.assign(container.style, { position: "absolute", top: "0px", left: "0px", width: "100%", height: "100%", margin: "0", border: "none", borderRadius: "0", zIndex: 100 });
+    
+    // Inject Chrome Suppression (Status bar, footers)
+    if (!document.getElementById('rt-chrome-suppression')) {
+        const style = document.createElement('style');
+        style.id = 'rt-chrome-suppression';
+        style.innerHTML = '.status-bar, .view-footer, .workspace-leaf-content-footer { display: none !important; }';
+        document.head.appendChild(style);
+    }
   };
 
   const revertFullTabStyle = useCallback(() => {
@@ -66,6 +74,10 @@ const ScreenModeHelper = ({ helperRef, containerRef }) => {
     originalParentRefForFullTab.current = null;
     originalPositionPlaceholderRef.current = null;
     originalParentPositionRefForFullTab.current = null;
+    
+    // Remove Chrome Suppression
+    const style = document.getElementById('rt-chrome-suppression');
+    if (style) style.remove();
   }, [containerRef]);
 
   const toggleMode = useCallback((requestedMode) => {
@@ -83,6 +95,14 @@ const ScreenModeHelper = ({ helperRef, containerRef }) => {
   useEffect(() => {
     if (helperRef) helperRef.current = { toggleMode, cycleMode };
   }, [helperRef, toggleMode, cycleMode]);
+
+  // Cleanup Chrome Suppression on unmount
+  useEffect(() => {
+    return () => {
+      const style = document.getElementById('rt-chrome-suppression');
+      if (style) style.remove();
+    };
+  }, []);
 
   return null;
 };
