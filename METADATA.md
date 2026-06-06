@@ -1,6 +1,6 @@
 ---
 author: beto.group
-version: 1.0.0
+version: 1.0.1
 id: receipt-tracker-732
 name: RECEIPT TRACKER
 description: An end-to-end financial automation system that uses OCR and AI (Groq/Llama 3) to extract data from receipt images and visualize spending in an interactive dashboard.
