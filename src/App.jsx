@@ -365,6 +365,8 @@ function ReceiptHandlerView({ folderPath }) {
   const [selectedModel, setSelectedModel] = useState("llama-3.3-70b-versatile");
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [receiptFolderPath, setReceiptFolderPath] = useState("");
+  const [processedFolderPath, setProcessedFolderPath] = useState("");
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
   const [receiptFiles, setReceiptFiles] = useState([]);
   const [currentReceipt, setCurrentReceipt] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -396,18 +398,34 @@ function ReceiptHandlerView({ folderPath }) {
     return getRelativePath(currentPath, 'data/receipts');
   }, [currentPath]);
   
-  const processedFolderPath = useMemo(() => {
-    // Always calculate processed path based on the current receiptFolderPath
-    if (!receiptFolderPath) return getRelativePath(currentPath, 'data/receipts/_processed');
-    return receiptFolderPath + '/_processed';
-  }, [currentPath, receiptFolderPath]);
+
   
   // Initialize receiptFolderPath only once when component first mounts
   useEffect(() => {
-    if (defaultReceiptsFolderPath && !receiptFolderPath) {
-      setReceiptFolderPath(defaultReceiptsFolderPath);
-    }
-  }, [defaultReceiptsFolderPath]); // Only depend on defaultReceiptsFolderPath, not receiptFolderPath
+    const loadSettings = async () => {
+      const settingsPath = getRelativePath(currentPath, 'data/settings.json');
+      try {
+        if (await dc.app.vault.adapter.exists(settingsPath)) {
+          const settings = JSON.parse(await dc.app.vault.adapter.read(settingsPath));
+          if (settings.receiptFolderPath) setReceiptFolderPath(settings.receiptFolderPath);
+          else if (defaultReceiptsFolderPath) setReceiptFolderPath(defaultReceiptsFolderPath);
+          
+          if (settings.processedFolderPath) setProcessedFolderPath(settings.processedFolderPath);
+          else if (defaultReceiptsFolderPath) setProcessedFolderPath(defaultReceiptsFolderPath + '/_processed');
+          return;
+        }
+      } catch (e) {
+        console.warn("Failed to load settings", e);
+      }
+      
+      // Defaults
+      if (defaultReceiptsFolderPath && !receiptFolderPath) {
+        setReceiptFolderPath(defaultReceiptsFolderPath);
+        setProcessedFolderPath(defaultReceiptsFolderPath + '/_processed');
+      }
+    };
+    if (currentPath) loadSettings();
+  }, [currentPath, defaultReceiptsFolderPath]); // Only depend on defaultReceiptsFolderPath, not receiptFolderPath
   
   // Tesseract supported languages (most common ones)
   const OCR_LANGUAGES = [
@@ -768,6 +786,21 @@ function ReceiptHandlerView({ folderPath }) {
     })(); 
   }, [currentReceipt]);
   
+
+  const handleSaveSettings = async () => {
+    const settingsPath = getRelativePath(currentPath, 'data/settings.json');
+    try {
+      await dc.app.vault.adapter.write(settingsPath, JSON.stringify({
+        receiptFolderPath,
+        processedFolderPath
+      }, null, 2));
+      setIsEditingSettings(false);
+      console.log("Settings saved!");
+    } catch (e) {
+      console.error("Failed to save settings", e);
+    }
+  };
+
   const handleAddKey = (key) => { if (key.trim()) { setEditedApiKeys([...editedApiKeys, key.trim()]); } };
   const handleDeleteKey = (indexToDelete) => { setEditedApiKeys(editedApiKeys.filter((_, index) => index !== indexToDelete)); };
   const handleCancelEditKeys = () => { setEditedApiKeys(groqApiKeys); setIsApiKeyPopoverOpen(false); };
@@ -1250,8 +1283,6 @@ Receipt text to parse (may be in any language): ---`
       {mainView === 'processor' && (
         <>
             <div className="rt-controls">
-                <label htmlFor="folder-path-input">Receipts Folder:</label>
-                <input id="folder-path-input" type="text" value={receiptFolderPath} onChange={e => setReceiptFolderPath(e.target.value)} placeholder="Relative to component location" />
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <label htmlFor="ocr-language-select" style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>OCR Language:</label>
                     <select 
@@ -1290,10 +1321,36 @@ Receipt text to parse (may be in any language): ---`
                     color: 'var(--text-muted)',
                     lineHeight: '1.6'
                 }}>
-                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Component:</strong> {currentPath}</div>
-                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Default Receipts:</strong> {defaultReceiptsFolderPath}</div>
-                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Current Receipts:</strong> {receiptFolderPath}</div>
-                    <div><strong style={{ color: 'var(--interactive-accent)' }}>Processed Output:</strong> {processedFolderPath}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <strong style={{ color: 'var(--interactive-accent)' }}>⚙️ Component Configuration</strong>
+                        {isEditingSettings ? (
+                            <button className="mod-cta" onClick={handleSaveSettings} style={{ padding: '2px 8px', height: '24px', fontSize: '11px' }}>Save</button>
+                        ) : (
+                            <button onClick={() => setIsEditingSettings(true)} style={{ padding: '2px 8px', height: '24px', fontSize: '11px' }}><EditIcon /> Edit Paths</button>
+                        )}
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: '150px 1fr', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ color: 'var(--interactive-accent)', fontWeight: 'bold' }}>Component Path:</div>
+                        <div>{currentPath}</div>
+                        
+                        <div style={{ color: 'var(--interactive-accent)', fontWeight: 'bold' }}>Default Data:</div>
+                        <div>{defaultReceiptsFolderPath}</div>
+                        
+                        <div style={{ color: 'var(--interactive-accent)', fontWeight: 'bold' }}>Receipts Input:</div>
+                        {isEditingSettings ? (
+                            <input type="text" value={receiptFolderPath} onChange={e => setReceiptFolderPath(e.target.value)} style={{ width: '100%' }} />
+                        ) : (
+                            <div>{receiptFolderPath}</div>
+                        )}
+                        
+                        <div style={{ color: 'var(--interactive-accent)', fontWeight: 'bold' }}>Processed Output:</div>
+                        {isEditingSettings ? (
+                            <input type="text" value={processedFolderPath} onChange={e => setProcessedFolderPath(e.target.value)} style={{ width: '100%' }} />
+                        ) : (
+                            <div>{processedFolderPath}</div>
+                        )}
+                    </div>
                 </div>
             )}
             
