@@ -838,22 +838,31 @@ function ReceiptHandlerView() {
           ctx.drawImage(img, 0, 0, width, height);
           console.log(`[OCR] 7b. Drew image on canvas`);
           
-          // Convert to grayscale for faster processing
+          // Binarization for high contrast (makes faded receipt text pop)
           const imageData = ctx.getImageData(0, 0, width, height);
           const data = imageData.data;
           for (let i = 0; i < data.length; i += 4) {
             const gray = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-            data[i] = data[i + 1] = data[i + 2] = gray;
+            const thresholded = gray < 130 ? gray * 0.6 : gray * 1.4; // Boost contrast
+            const finalGray = Math.min(255, Math.max(0, thresholded));
+            data[i] = data[i + 1] = data[i + 2] = finalGray;
           }
           ctx.putImageData(imageData, 0, 0);
-          console.log(`[OCR] 7c. Applied grayscale`);
+          console.log(`[OCR] 7c. Applied high-contrast binarization`);
           
-          // Revoke the original blob URL since we're replacing it
           URL.revokeObjectURL(imageSrc);
           imageSrc = canvas.toDataURL('image/jpeg', 0.9);
-          console.log(`[OCR] 7d. Converted to JPEG data URL for OCR processing`);
+          console.log(`[OCR] 7d. Converted to base64 data URL`);
         } else {
-          console.log(`[OCR] 7. Image size OK (${img.width}x${img.height}), using blob URL directly`);
+          // Force conversion to base64 data URL even if small, for Groq Vision
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+          URL.revokeObjectURL(imageSrc);
+          imageSrc = canvas.toDataURL('image/jpeg', 0.9);
+          console.log(`[OCR] 7. Converted to base64 data URL`);
         }
       } catch (preprocessErr) {
         console.error('[OCR] ❌ PREPROCESSING FAILED!');
@@ -905,7 +914,7 @@ function ReceiptHandlerView() {
         // PSM 3 = Fully automatic page segmentation (faster than default)
         // OEM 1 = Neural nets LSTM engine only (faster and more accurate)
         await worker.setParameters({
-          tessedit_pageseg_mode: window.Tesseract.PSM.AUTO,
+          tessedit_pageseg_mode: '11', // SPARSE_TEXT is best for receipts
           tessedit_ocr_engine_mode: window.Tesseract.OEM.LSTM_ONLY,
         });
         
@@ -963,7 +972,7 @@ function ReceiptHandlerView() {
       }
       
       if (!text?.trim()) throw new Error("OCR completed, but no text was detected. The image may be too blurry or not contain readable text.");
-      return text;
+      return { ocrText: text, base64Image: imageSrc };
     } catch (err) {
       // Better error messages for common issues
       if (err.message?.includes('cors') || err.message?.includes('fetch')) {
@@ -989,7 +998,7 @@ function ReceiptHandlerView() {
     return naCount >= 3; // If 3+ key fields are N/A, consider it low quality
   };
   
-  const analyzeTextWithGroq = async (ocrText, isRetry = false) => {
+  const analyzeTextWithGroq = async (ocrText, base64Image, isRetry = false) => {
     if (groqApiKeys.length === 0) { throw new Error("Groq API key is not set. Please add an API key in the API Config."); }
     
     // Use enhanced prompt for retry
@@ -1024,7 +1033,10 @@ Receipt text to parse (may be in any language): ---`
               model: selectedModel,
               messages: [
                 { role: "system", content: systemPrompt }, 
-                { role: "user", content: ocrText }
+                { role: "user", content: selectedModel.includes("vision") && base64Image ? [
+                    { type: "text", text: "Extract structured data from this receipt image. " + (ocrText ? "Here is the raw OCR text as a fallback:\n" + ocrText : "") },
+                    { type: "image_url", image_url: { url: base64Image } }
+                ] : ocrText }
               ], 
               temperature: isRetry ? 0.3 : 0.1, // Slightly higher temp for retry to be more creative
               response_format: { type: "json_object" } 
@@ -1116,8 +1128,9 @@ Receipt text to parse (may be in any language): ---`
     let extractedJson = {}; 
     
     try { 
-      ocrText = await performOcr(receiptFile); 
-      extractedJson = await analyzeTextWithGroq(ocrText, false);
+      const result = await performOcr(receiptFile); 
+      ocrText = result.ocrText;
+      extractedJson = await analyzeTextWithGroq(ocrText, result.base64Image, false);
       
       // Check if result is low quality (mostly N/A values)
       if (hasLowQualityData(extractedJson)) {
@@ -1126,7 +1139,7 @@ Receipt text to parse (may be in any language): ---`
         
         try {
           // Retry with enhanced prompt
-          const enhancedJson = await analyzeTextWithGroq(ocrText, true);
+          const enhancedJson = await analyzeTextWithGroq(ocrText, result.base64Image, true);
           
           // Use enhanced result if it's better
           if (!hasLowQualityData(enhancedJson)) {
