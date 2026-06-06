@@ -126,7 +126,7 @@ const DashboardView = ({ dashboardData }) => {
             if (selectedCurrency !== 'ALL') return;
             setRatesStatus('loading');
             try {
-                const response = await fetch(`https://api.frankfurter.app/latest?from=${baseCurrency}`);
+                const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${baseCurrency}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
                 setExchangeRates({ ...data.rates, [baseCurrency]: 1 }); // Add base currency to rates
