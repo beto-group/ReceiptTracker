@@ -798,7 +798,7 @@ function ReceiptHandlerView({ folderPath }) {
       }
     };
     loadFilesAndData();
-  }, [receiptFolderPath, processedFolderPath]);
+  }, [receiptFolderPath, processedFolderPath, showExamples, defaultReceiptsFolderPath]);
   
   useEffect(() => { 
     if (!currentReceipt) { 
