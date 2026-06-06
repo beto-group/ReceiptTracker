@@ -1373,7 +1373,9 @@ Receipt text to parse (may be in any language): ---`
                     lineHeight: '1.6'
                 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <strong style={{ color: 'var(--interactive-accent)' }}>⚙️ Component Configuration</strong>
+                        <strong style={{ color: 'var(--interactive-accent)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <dc.Icon icon="settings" /> Component Configuration
+                        </strong>
                         {isEditingSettings ? (
                             <button className="mod-cta" onClick={handleSaveSettings} style={{ padding: '2px 8px', height: '24px', fontSize: '11px' }}>Save</button>
                         ) : (
