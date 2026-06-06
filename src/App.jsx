@@ -352,9 +352,10 @@ const EditReceiptModal = ({ isOpen, onClose, initialData, onSave }) => {
 // =================================================================================
 // MAIN COMPONENT
 // =================================================================================
-function ReceiptHandlerView() {
+function ReceiptHandlerView({ folderPath }) {
   // Get current file path for relative path calculation
-  const currentPath = dc.resolvePath("D.q.receipttracker.component");
+  const appJsxPath = dc.resolvePath("App.jsx"); 
+  const currentPath = folderPath || (appJsxPath ? appJsxPath.substring(0, appJsxPath.lastIndexOf(/src/App.jsx)) : );
   
   const [tesseractLoaded, setTesseractLoaded] = useState(false);
   const [groqApiKeys, setGroqApiKeys] = useState([]);

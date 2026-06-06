@@ -149,9 +149,16 @@ const DashboardView = ({ dashboardData }) => {
         else startDate = new Date(0); // 'all_time'
         
         return dashboardData
-            .filter(d => d.json?.transaction_date && d.json.total_amount != null && d.json.currency)
-            .filter(d => { try { return new Date(d.json.transaction_date + "T00:00:00") >= startDate; } catch { return false; } })
-            .sort((a, b) => new Date(b.json.transaction_date) - new Date(a.json.transaction_date));
+            .filter(d => d.json && d.json.total_amount != null && d.json.total_amount !== "N/A" && d.json.currency)
+            .filter(d => { 
+                if (!d.json.transaction_date || d.json.transaction_date === "N/A") return true; // Include missing dates
+                try { return new Date(d.json.transaction_date + "T00:00:00") >= startDate; } catch { return true; } 
+            })
+            .sort((a, b) => {
+                const dateA = a.json.transaction_date && a.json.transaction_date !== "N/A" ? new Date(a.json.transaction_date) : new Date(0);
+                const dateB = b.json.transaction_date && b.json.transaction_date !== "N/A" ? new Date(b.json.transaction_date) : new Date(0);
+                return dateB - dateA;
+            });
     }, [dashboardData, dateFilter]);
     
     const detectedCurrencies = useMemo(() => {
