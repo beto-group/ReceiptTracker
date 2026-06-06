@@ -1377,9 +1377,9 @@ Receipt text to parse (may be in any language): ---`
                             <dc.Icon icon="settings" /> Component Configuration
                         </strong>
                         {isEditingSettings ? (
-                            <button className="mod-cta" onClick={handleSaveSettings} style={{ padding: '2px 8px', height: '24px', fontSize: '11px' }}>Save</button>
+                            <button className="mod-cta" onClick={(e) => { e.preventDefault(); console.log('Save clicked'); handleSaveSettings(); }} style={{ padding: '2px 8px', height: '24px', fontSize: '11px', cursor: 'pointer' }}>Save</button>
                         ) : (
-                            <button onClick={() => setIsEditingSettings(true)} style={{ padding: '2px 8px', height: '24px', fontSize: '11px' }}><EditIcon /> Edit Paths</button>
+                            <button className="mod-cta" onClick={(e) => { e.preventDefault(); console.log('Edit clicked'); setIsEditingSettings(true); }} style={{ padding: '2px 8px', height: '24px', fontSize: '11px', backgroundColor: 'var(--interactive-normal)', cursor: 'pointer' }}><dc.Icon icon="edit-3" /> Edit Paths</button>
                         )}
                     </div>
                     
