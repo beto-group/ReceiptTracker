@@ -14,8 +14,8 @@ function getStyles() {
     .filter-group { display: flex; align-items: center; gap: 8px; }
     .filter-label { color: var(--text-muted); font-size: 0.9em; font-weight: 500; }
     .filter-controls { display: flex; gap: 8px; background-color: var(--background-secondary); border-radius: 6px; padding: 4px; }
-    .filter-controls button { background: none; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; }
-    .filter-controls button:hover { color: var(--text-normal); background-color: var(--background-modifier-border); }
+    .filter-controls .rt-container button { background: none; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-weight: 500; transition: all 0.2s ease; }
+    .filter-controls .rt-container button:hover { color: var(--text-normal); background-color: var(--background-modifier-border); }
     .filter-controls button.active { color: var(--text-normal); background-color: var(--interactive-accent); }
     .base-currency-select { 
       background-color: var(--background-secondary); border: 1px solid var(--background-modifier-border); 
@@ -44,13 +44,13 @@ function getStyles() {
     .dashboard-placeholder-small { text-align: center; padding: 20px; color: var(--text-faint); }
     
     /* --- CORE COMPONENT STYLES --- */
-    input, button, select { font-family: var(--font-sans); font-size: var(--font-ui-small); }
-    input[type="text"], input[type="password"] { background-color: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 6px; padding: 8px 12px; color: var(--text-normal); }
-    button { background-color: var(--background-secondary); border: 1px solid var(--background-modifier-border); color: var(--text-normal); border-radius: 6px; padding: 8px 14px; cursor: pointer; transition: all 0.2s ease; }
-    button:hover { background-color: var(--background-modifier-border); }
-    button.primary { background-color: var(--interactive-accent); border-color: var(--interactive-accent); }
-    button.primary:hover { background-color: var(--interactive-accent-hover); }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .rt-container input, .rt-container button, .rt-container select { font-family: var(--font-sans); font-size: var(--font-ui-small); }
+    .rt-container input[type="text"], .rt-container input[type="password"] { background-color: var(--background-secondary); border: 1px solid var(--background-modifier-border); border-radius: 6px; padding: 8px 12px; color: var(--text-normal); }
+    .rt-container button { background-color: var(--background-secondary); border: 1px solid var(--background-modifier-border); color: var(--text-normal); border-radius: 6px; padding: 8px 14px; cursor: pointer; transition: all 0.2s ease; }
+    .rt-container button:hover { background-color: var(--background-modifier-border); }
+    .rt-container button.primary { background-color: var(--interactive-accent); border-color: var(--interactive-accent); }
+    .rt-container button.primary:hover { background-color: var(--interactive-accent-hover); }
+    .rt-container button:disabled { opacity: 0.5; cursor: not-allowed; }
     .rt-header { display: flex; align-items: center; gap: 16px; flex-shrink: 0; justify-content: space-between; width: 100%; padding-bottom: 16px; border-bottom: 1px solid var(--background-modifier-border); }
     .header-left { display: flex; align-items: center; gap: 24px; flex-grow: 1; overflow: hidden; }
     .header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
@@ -122,7 +122,7 @@ function getStyles() {
     .panel-header.is-clickable:hover { background-color: var(--background-modifier-border); }
     .panel-header h4, .panel-header h3 { margin: 0; flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-normal); }
     .panel-header-actions { display: flex; align-items: center; gap: 8px; }
-    .panel-focus-button { margin-left: auto; }
+    .panel-focus-.rt-container button { margin-left: auto; }
     .file-list { overflow-y: auto; padding: 8px; flex-grow: 1; }
     .file-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 5px; cursor: pointer; white-space: nowrap; color: var(--text-normal); }
     .file-list-item:hover { background-color: var(--background-modifier-border); }
@@ -145,14 +145,14 @@ function getStyles() {
     .summary-table td { padding: 12px 15px; text-align: left; border-top: 1px solid var(--background-modifier-border); color: var(--text-normal); transition: background-color 0.2s ease; }
     .summary-table tbody tr:hover td { background-color: var(--background-secondary); }
     .table-actions { display: flex; gap: 8px; }
-    .icon-button { background: none; border: none; padding: 5px; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
-    .icon-button:hover { background-color: var(--background-modifier-border); color: var(--text-normal); }
+    .icon-.rt-container button { background: none; border: none; padding: 5px; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
+    .icon-.rt-container button:hover { background-color: var(--background-modifier-border); color: var(--text-normal); }
     .empty-state { padding: 20px; text-align: center; color: var(--text-faint); }
     .empty-state-placeholder { text-align: center; color: var(--text-faint); padding: 40px 20px; }
     .empty-state-placeholder h4 { color: var(--text-muted); margin: 16px 0 8px 0; }
     .empty-state-placeholder p { color: var(--text-faint); margin: 0; }
     .tab-bar { display: flex; border-bottom: 1px solid var(--background-modifier-border); margin-bottom: 10px; }
-    .tab-bar button { background: none; border: none; padding: 10px 15px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .tab-bar .rt-container button { background: none; border: none; padding: 10px 15px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; }
     .tab-bar button.active { border-bottom-color: var(--interactive-accent); color: var(--text-normal); font-weight: 500; }
     .tab-content { color: var(--text-normal); }
   `;
