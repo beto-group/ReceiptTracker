@@ -410,7 +410,7 @@ function ReceiptHandlerView() {
   
   // Tesseract supported languages (most common ones)
   const OCR_LANGUAGES = [
-    { code: 'auto', name: '🤖 Auto-detect' },
+    { code: 'auto', name: 'Auto-detect' },
     { code: 'eng', name: 'English' },
     { code: 'spa', name: 'Spanish' },
     { code: 'fra', name: 'French' },
@@ -768,7 +768,7 @@ function ReceiptHandlerView() {
       // Use multiple language families for comprehensive auto-detection
       // Includes: Western European, Cyrillic, Asian (CJK), Arabic, and Thai
       languageToUse = 'eng+spa+fra+deu+rus+jpn+chi_sim+kor+ara+tha';
-      langDisplayName = '🤖 Auto-detecting';
+      langDisplayName = 'Auto-detecting';
     }
     
     setCurrentStatus(`(1/2) Extracting text with OCR (${langDisplayName})...`);
@@ -1184,7 +1184,7 @@ Receipt text to parse (may be in any language): ---`
       
       <header className="rt-header">
         <div className="header-left">
-            <h2 style={viewerStyles.headerTitle}>🧾 Receipt Handler</h2>
+            <h2 style={{...viewerStyles.headerTitle, display: "flex", alignItems: "center", gap: "8px"}}><dc.Icon icon="receipt" /> Receipt Handler</h2>
             <div className="main-view-tabs">
                 <button onClick={() => setMainView('processor')} className={`main-view-tab ${mainView === 'processor' ? 'active' : ''}`}>Processor</button>
                 <button onClick={() => setMainView('dashboard')} className={`main-view-tab ${mainView === 'dashboard' ? 'active' : ''}`}>Dashboard</button>

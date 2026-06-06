@@ -122,7 +122,7 @@ function getStyles() {
     .panel-header.is-clickable:hover { background-color: var(--background-modifier-border); }
     .panel-header h4, .panel-header h3 { margin: 0; flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-normal); }
     .panel-header-actions { display: flex; align-items: center; gap: 8px; }
-    .panel-focus-.rt-container button { margin-left: auto; }
+    .panel-focus-button { margin-left: auto; }
     .file-list { overflow-y: auto; padding: 8px; flex-grow: 1; }
     .file-list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; border-radius: 5px; cursor: pointer; white-space: nowrap; color: var(--text-normal); }
     .file-list-item:hover { background-color: var(--background-modifier-border); }
@@ -145,14 +145,14 @@ function getStyles() {
     .summary-table td { padding: 12px 15px; text-align: left; border-top: 1px solid var(--background-modifier-border); color: var(--text-normal); transition: background-color 0.2s ease; }
     .summary-table tbody tr:hover td { background-color: var(--background-secondary); }
     .table-actions { display: flex; gap: 8px; }
-    .icon-.rt-container button { background: none; border: none; padding: 5px; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
-    .icon-.rt-container button:hover { background-color: var(--background-modifier-border); color: var(--text-normal); }
+    .rt-icon-button { background: none; border: none; padding: 5px; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
+    .rt-icon-button:hover { background-color: var(--background-modifier-border); color: var(--text-normal); }
     .empty-state { padding: 20px; text-align: center; color: var(--text-faint); }
     .empty-state-placeholder { text-align: center; color: var(--text-faint); padding: 40px 20px; }
     .empty-state-placeholder h4 { color: var(--text-muted); margin: 16px 0 8px 0; }
     .empty-state-placeholder p { color: var(--text-faint); margin: 0; }
     .tab-bar { display: flex; border-bottom: 1px solid var(--background-modifier-border); margin-bottom: 10px; }
-    .tab-bar .rt-container button { background: none; border: none; padding: 10px 15px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; }
+    .tab-bar button { background: none; border: none; padding: 10px 15px; cursor: pointer; color: var(--text-muted); border-bottom: 2px solid transparent; }
     .tab-bar button.active { border-bottom-color: var(--interactive-accent); color: var(--text-normal); font-weight: 500; }
     .tab-content { color: var(--text-normal); }
   `;
