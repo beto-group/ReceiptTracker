@@ -629,15 +629,38 @@ function ReceiptHandlerView({ folderPath }) {
     }
     (async () => {
       let keyFound = false;
+      const keychainId = "receipt-tracker-groq-keys";
       try {
-        if (await app.vault.adapter.exists(GROQ_API_KEY_PATH)) {
+        // 1. Try Keychain First
+        if (dc.app.secretStorage) {
+            try {
+                const secretVal = await dc.app.secretStorage.getSecret(keychainId);
+                if (secretVal) {
+                    const keys = JSON.parse(secretVal);
+                    if (keys && keys.length > 0) {
+                        setGroqApiKeys(keys); setEditedApiKeys(keys); keyFound = true;
+                    }
+                }
+            } catch (e) {
+                console.warn("[Keychain] Error reading from keychain:", e);
+            }
+        }
+        
+        // 2. Migration from legacy plaintext file
+        if (!keyFound && await app.vault.adapter.exists(GROQ_API_KEY_PATH)) {
+          console.log('[API Keys] Found legacy .txt file. Migrating to Keychain...');
           const keysContent = await app.vault.adapter.read(GROQ_API_KEY_PATH);
           const keys = keysContent.split('\n').map(k => k.trim()).filter(Boolean);
           if (keys.length > 0) {
             setGroqApiKeys(keys); setEditedApiKeys(keys); keyFound = true;
+            if (dc.app.secretStorage) {
+                await dc.app.secretStorage.setSecret(keychainId, JSON.stringify(keys));
+                await app.vault.adapter.remove(GROQ_API_KEY_PATH);
+                console.log('[API Keys] ✓ Successfully migrated keys to Keychain and deleted .txt file');
+            }
           }
         }
-      } catch (err) { setError("Error loading Groq API key file."); }
+      } catch (err) { setError("Error loading Groq API keys."); }
       if (!keyFound) setIsApiKeyPopoverOpen(true);
     })();
   }, [processedFolderPath, loadAllDashboardData]);
@@ -739,23 +762,24 @@ function ReceiptHandlerView({ folderPath }) {
   const handleCancelEditKeys = () => { setEditedApiKeys(groqApiKeys); setIsApiKeyPopoverOpen(false); };
   const handleSaveApiKeys = async () => {
     try {
-        const dir = GROQ_API_KEY_PATH.substring(0, GROQ_API_KEY_PATH.lastIndexOf("/"));
-        if (!await app.vault.adapter.exists(dir)) {
-          console.log('[API Keys] Creating directory:', dir);
-          await app.vault.adapter.mkdir(dir);
+        console.log('[API Keys] Saving keys to Keychain...');
+        const keychainId = "receipt-tracker-groq-keys";
+        if (dc.app.secretStorage) {
+            await dc.app.secretStorage.setSecret(keychainId, JSON.stringify(editedApiKeys));
+        } else {
+            console.warn('[API Keys] Keychain not available, skipping save');
+            setError("Keychain API not available.");
+            return;
         }
-        
-        console.log('[API Keys] Saving keys to:', GROQ_API_KEY_PATH);
-        await app.vault.adapter.write(GROQ_API_KEY_PATH, editedApiKeys.join('\n'));
         
         setGroqApiKeys(editedApiKeys); 
         setCurrentApiKeyIndex(0); 
         setError(null); 
         setIsApiKeyPopoverOpen(false);
-        console.log('[API Keys] ✓ Successfully saved API keys');
+        console.log('[API Keys] ✓ Successfully saved API keys to Keychain');
     } catch (err) { 
       console.error('[API Keys] Failed to save:', err);
-      setError("Could not save the API keys."); 
+      setError("Could not save the API keys to Keychain."); 
     }
   };
   const performOcr = async (file) => {
