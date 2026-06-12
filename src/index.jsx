@@ -1,7 +1,7 @@
 /**
  * Datacore Bootstrapper
  */
-async function View({ folderPath }) {
+async function View({ folderPath, dc, ...props }) {
     // 1. Initialize Safe Agent immediately
     const Agent = {
         timer: null,
@@ -51,7 +51,7 @@ async function View({ folderPath }) {
         dc.useEffect(() => {
             const load = async () => {
                 try {
-                    const { ReceiptHandlerView } = await dc.require(dc.resolvePath("RECEIPT TRACKER/src/App.jsx"));
+                    const { ReceiptHandlerView } = await dc.require(folderPath + "/src/App.jsx");
                     setApp({ ReceiptHandlerView });
                 } catch (e) {
                     console.error("Critical Load Error:", e);
@@ -63,7 +63,7 @@ async function View({ folderPath }) {
         if (!app) return <div>Loading...</div>;
 
         const { ReceiptHandlerView } = app;
-        return <ReceiptHandlerView key={key} folderPath={folderPath} />;
+        return <ReceiptHandlerView key={key} folderPath={folderPath} dc={dc} {...props} />;
     };
 
     return <SafeView />;

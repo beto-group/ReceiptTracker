@@ -1,14 +1,9 @@
 const { useState, useEffect, useRef, useCallback, useMemo } = dc;
 
-const filename = dc.resolvePath("RECEIPT TRACKER/src/App.jsx");
+let ScreenModeHelper = null;
+let DashboardView = null;
+let viewerStyles = null;
 
-// Import all component parts
-const { ScreenModeHelper } = await dc.require(dc.resolvePath("RECEIPT TRACKER/src/utils/ScreenModeHelper.jsx"));
-const { DashboardView } = await dc.require(dc.resolvePath("RECEIPT TRACKER/src/components/DashboardView.jsx"));
-const { getStyles } = await dc.require(dc.resolvePath("RECEIPT TRACKER/src/styles/ViewStyles.jsx"));
-
-// Instantiate the styles
-const viewerStyles = getStyles();
 
 // =================================================================================
 // LOAD SCRIPT UTILITY
@@ -357,6 +352,27 @@ function ReceiptHandlerView({ folderPath }) {
   // Get current file path for relative path calculation
   const appJsxPath = dc.resolvePath("App.jsx"); 
   const currentPath = folderPath || (appJsxPath ? appJsxPath.substring(0, appJsxPath.lastIndexOf("/src/App.jsx")) : "");
+
+  const [dependenciesLoaded, setDependenciesLoaded] = useState(false);
+
+  useEffect(() => {
+    async function loadDeps() {
+      try {
+        const smHelperModule = await dc.require(folderPath + "/src/utils/ScreenModeHelper.jsx");
+        const dbViewModule = await dc.require(folderPath + "/src/components/DashboardView.jsx");
+        const stylesModule = await dc.require(folderPath + "/src/styles/ViewStyles.jsx");
+        
+        ScreenModeHelper = smHelperModule.ScreenModeHelper;
+        DashboardView = dbViewModule.DashboardView;
+        viewerStyles = stylesModule.getStyles();
+        
+        setDependenciesLoaded(true);
+      } catch (e) {
+        console.error("Failed to load ReceiptTracker dependencies:", e);
+      }
+    }
+    loadDeps();
+  }, [folderPath]);
   
   const [tesseractLoaded, setTesseractLoaded] = useState(false);
   const [groqApiKeys, setGroqApiKeys] = useState([]);
@@ -1315,6 +1331,14 @@ Receipt text to parse (may be in any language): ---`
     }
   };
   const currentReceiptData = currentReceipt ? processedData[currentReceipt.path] : null;
+
+  if (!dependenciesLoaded) {
+    return (
+      <div style={{ padding: "20px", color: "var(--text-muted)", fontFamily: "monospace" }}>
+        Initializing Receipt Tracker dependencies...
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className="rt-container">
